@@ -58,7 +58,8 @@ router.put(
               $set: {
                 "relationships.$.score": relationship.score,
                 "relationships.$.special": relationship.special,
-                "relationships.$.comment": relationship.comment,
+                "relationships.$.counterComment": relationship.counterComment,
+                "relationships.$.comboComment": relationship.comboComment,
               },
             }
           );
@@ -72,7 +73,8 @@ router.put(
               $set: {
                 "relationships.$.score": -relationship.score,
                 "relationships.$.special": relationship.special,
-                "relationships.$.comment": relationship.comment,
+                "relationships.$.counterComment": relationship.counterComment,
+                "relationships.$.comboComment": relationship.comboComment,
               },
             }
           );
@@ -128,13 +130,15 @@ router.post(
       //extract id from all documents into an array
       const allHeroesID = await Hero.find().select("_id");
 
-      if (allHeroesID) {
+      if (allHeroesID.length > 0) {
         //map ids into an array of relationship object
         const relationships = allHeroesID.map((id) => ({
           hero: id,
+          combo: 0,
           score: 0,
           special: false,
-          comment: "",
+          comboComment: "",
+          counterComment: "",
         }));
 
         //add the relationships to the newHero body
@@ -147,13 +151,19 @@ router.post(
       //create a new relationship of this hero
       const newRelationshiop = {
         hero: newHero._id,
+        combo: 0,
         score: 0,
         special: false,
-        comment: "",
+        comboComment: "",
+        counterComment: "",
       };
 
-      //update this new relationship to all the existing heroes
-      await Hero.updateMany({}, { $push: { relationships: newRelationshiop } });
+      //update this new relationship to all the existing heroes but himself
+      await Hero.updateMany(
+        { _id: { $ne: newHero._id } },
+        { $push: { relationships: newRelationshiop } }
+      );
+
       res.send("Hero created successfully");
     } catch (e) {
       throw new ExpressError(e.message);

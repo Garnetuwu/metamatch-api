@@ -45,10 +45,16 @@ const heroSchema = Schema({
   relationships: [
     {
       hero: { type: Schema.Types.ObjectId, ref: "Hero" },
-      score: { type: Number, min: -100, max: 100 },
-      combo: { type: String, enum: ["S", "A", "B", "C"] },
+      score: {
+        type: Number,
+        min: -100,
+        max: 100,
+        validator: (v) => /^\s*-?[0-9]{1,10}\s*$/.text(v),
+      },
+      combo: { type: Number, enum: [0, 1, 2, 3, 4] },
       special: Boolean,
-      comment: String,
+      counterComment: String,
+      comboComment: String,
     },
   ],
 });
