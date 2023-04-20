@@ -31,7 +31,6 @@ router.put(
   catchAsync(async (req, res, next) => {
     const params = req.params;
     const body = req.body;
-    console.log(body);
     if (!params.id) throw new ExpressError("no id found", 400);
     try {
       //update hero basic info
@@ -56,6 +55,7 @@ router.put(
             },
             {
               $set: {
+                "relationships.$.combo": relationship.combo,
                 "relationships.$.score": relationship.score,
                 "relationships.$.special": relationship.special,
                 "relationships.$.counterComment": relationship.counterComment,
@@ -72,6 +72,7 @@ router.put(
             {
               $set: {
                 "relationships.$.score": -relationship.score,
+                "relationships.$.combo": relationship.combo,
                 "relationships.$.special": relationship.special,
                 "relationships.$.counterComment": relationship.counterComment,
                 "relationships.$.comboComment": relationship.comboComment,
