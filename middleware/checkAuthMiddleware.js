@@ -1,5 +1,6 @@
 const ExpressError = require("../utils/Errors");
 const jwt = require("jsonwebtoken");
+const { Hero, DummyHero } = require("../models/hero");
 
 function checkAuthMiddleware(req, res, next) {
   if (!req.headers.authorization) {
@@ -16,6 +17,11 @@ function checkAuthMiddleware(req, res, next) {
   try {
     const validatedToken = jwt.verify(authToken, process.env.JWT_SECRET);
     req.token = { authToken, validatedToken };
+    if (validatedToken.role === "admin") {
+      req.Hero = Hero;
+    } else {
+      req.Hero = DummyHero;
+    }
   } catch (error) {
     console.log("NOT AUTH. TOKEN INVALID.");
     return next(new ExpressError("NOT AUTH. TOKEN INVALID", 401));

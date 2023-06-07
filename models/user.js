@@ -15,6 +15,11 @@ const userSchema = Schema(
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
       },
     },
+    role: {
+      type: String,
+      required: true,
+      enum: ["admin", "visitor"],
+    },
   },
   { collection: "users" }
 );

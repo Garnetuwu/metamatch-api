@@ -35,10 +35,14 @@ router.post("/login", async (req, res, next) => {
 
   //generate voucher and send verification email
   if (foundUser) {
-    const token = jwt.sign({ userId: foundUser.id }, process.env.JWT_SECRET, {
-      expiresIn: "10h",
-    });
-    console.log(token);
+    console.log(foundUser);
+    const token = jwt.sign(
+      { userId: foundUser.id, role: foundUser.role },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "10h",
+      }
+    );
     try {
       await sendMagicLinkEmail({ email: email, name: foundUser.name, token });
       return res.send("email sent");

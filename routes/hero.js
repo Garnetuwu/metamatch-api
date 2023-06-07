@@ -2,13 +2,13 @@ const express = require("express");
 const router = express.Router();
 const catchAsync = require("../utils/CatchAsync");
 const checkAuthMiddleware = require("../middleware/checkAuthMiddleware");
-const Hero = require("../models/hero");
 const ExpressError = require("../utils/Errors");
 
 router.get(
   "/:id",
+  checkAuthMiddleware,
   catchAsync(async (req, res, next) => {
-    const params = req.params;
+    const { params, Hero } = req;
     try {
       const hero = await Hero.findOne({ _id: params.id }).populate({
         path: "relationships",
@@ -29,8 +29,7 @@ router.put(
   "/:id",
   checkAuthMiddleware,
   catchAsync(async (req, res, next) => {
-    const params = req.params;
-    const body = req.body;
+    const { params, Hero, body } = req;
     if (!params.id) throw new ExpressError("no id found", 400);
     try {
       //update hero basic info
@@ -92,7 +91,7 @@ router.delete(
   "/:id",
   checkAuthMiddleware,
   catchAsync(async (req, res, next) => {
-    const params = req.params;
+    const { params, Hero } = req;
     if (!params.id) throw new ExpressError("no id found", 400);
     try {
       await Hero.findOneAndDelete({ _id: params.id });
@@ -110,8 +109,9 @@ router.delete(
 
 router.get(
   "/",
+  checkAuthMiddleware,
   catchAsync(async (req, res) => {
-    const allHeroes = await Hero.find({}, ["image", "role", "name"]);
+    const allHeroes = await req.Hero.find({}, ["image", "role", "name"]);
     console.log("heros send");
     res.send(allHeroes);
   })
@@ -121,7 +121,7 @@ router.post(
   "/new-hero",
   checkAuthMiddleware,
   catchAsync(async (req, res) => {
-    const body = req.body;
+    const { body, Hero } = req;
     if (!req.body.newHero) throw new ExpressError("Invalid Hero data", 400);
     const repeatedHero = await Hero.findOne({ name: body.newHero.name });
     if (repeatedHero) {

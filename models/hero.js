@@ -59,4 +59,7 @@ const heroSchema = Schema({
   ],
 });
 
-module.exports = mongoose.model("Hero", heroSchema);
+module.exports = {
+  Hero: mongoose.model("Hero", heroSchema),
+  DummyHero: mongoose.model("DummyHero", heroSchema),
+};
