@@ -5,22 +5,46 @@ const checkAuthMiddleware = require("../middleware/checkAuthMiddleware");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const { sendMagicLinkEmail } = require("../mailer");
+const ExpressError = require("../utils/Errors");
 
-router.get("/register", async (req, res) => {
-  const newUser = {
-    username: "Garnet",
-    email: "garnet2333@hotmail.com",
-  };
+const createAndSendToken = async (user) => {
+  const token = jwt.sign(
+    { userId: user.id, role: user.role },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "10h",
+    }
+  );
+  await sendMagicLinkEmail({ email: user.email, name: user.username, token });
+};
+
+router.post("/register", async (req, res, next) => {
+  if (!req.body.username || !req.body.email) {
+    next(new ExpressError("you have to complete both areas to register."));
+  }
+
+  const { username, email } = req.body;
 
   const foundUser = await User.find({
-    username: newUser.username,
+    email,
   });
 
-  if (!foundUser) {
-    const result = await User.insertOne(newUser);
-    res.json(result);
+  if (foundUser.length === 0) {
+    try {
+      await User.collection.insertOne({
+        username,
+        email,
+        role: "visitor",
+      });
+      // await createAndSendToken(newUser);
+    } catch (e) {
+      console.log(e);
+      next(e);
+    }
+    res.send("success");
   } else {
-    res.send("user already existed");
+    console.log(foundUser);
+    next(new ExpressError("user already existed, please login", 401));
   }
 });
 
@@ -36,21 +60,14 @@ router.post("/login", async (req, res, next) => {
   //generate voucher and send verification email
   if (foundUser) {
     console.log(foundUser);
-    const token = jwt.sign(
-      { userId: foundUser.id, role: foundUser.role },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "10h",
-      }
-    );
     try {
-      await sendMagicLinkEmail({ email: email, name: foundUser.name, token });
-      return res.send("email sent");
+      createAndSendToken(foundUser);
     } catch (e) {
       next(e);
     }
+    res.send("Please check your email to complete logging in");
   }
-  res.send("Please check your email to complete logging in");
+  next(new ExpressError("no user found, please register first", 401));
 });
 
 router.post(

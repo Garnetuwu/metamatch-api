@@ -14,10 +14,11 @@ router.get(
         path: "relationships",
         populate: {
           path: "hero",
-          model: "Hero",
+          model: Hero,
           select: "name role",
         },
       });
+      console.log(hero);
       res.send(hero);
     } catch (e) {
       next(new ExpressError(e.message));
@@ -122,7 +123,7 @@ router.post(
   checkAuthMiddleware,
   catchAsync(async (req, res) => {
     const { body, Hero } = req;
-    if (!req.body.newHero) throw new ExpressError("Invalid Hero data", 400);
+    if (!body.newHero) throw new ExpressError("Invalid Hero data", 400);
     const repeatedHero = await Hero.findOne({ name: body.newHero.name });
     if (repeatedHero) {
       throw new ExpressError("Hero Already Existed", 400);
